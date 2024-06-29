@@ -1,9 +1,9 @@
 use std::io::Write;
 use std::fs::File;
 use hound;
-use realfft::RealFftPlanner;
+use rustfft::{FftPlanner, num_complex::Complex};
 
-const CHUNK_SIZE : usize = 8 * 1024;
+const CHUNK_SIZE : usize = 16 * 1024;
 
 #[derive(Copy, Clone)]
 struct FrequencyBand {
@@ -42,22 +42,20 @@ fn main() {
     let mut all_samples = reader.samples::<i16>().peekable();
 
     let mut song_fingerprint: Vec<(Vec<i16>, f32)> = Vec::new();
-
+    let mut fft_planner = FftPlanner::<f32>::new();
     let mut timestamp: f32 = 0.0;
 
     while all_samples.peek().is_some() {
         println!("Analyzing at timestamp {}", timestamp);
         let current_chunk = all_samples.by_ref().take(CHUNK_SIZE);
-        let audio_data: &mut [i16; CHUNK_SIZE] = &mut [0; CHUNK_SIZE];
+        let mut audio_data = vec![Complex{ re: 0.0, im: 0.0 }; CHUNK_SIZE];
         current_chunk.enumerate().for_each(|(i, sample)| {
-            audio_data[i] = sample.unwrap();
+            audio_data[i].re = sample.unwrap() as f32;
         });
 
-        let mut fft_planner = RealFftPlanner::<i16>::new();
         let r2c = fft_planner.plan_fft_forward(CHUNK_SIZE);
-        let mut spectrum = r2c.make_output_vec();
 
-        r2c.process(audio_data, &mut spectrum).unwrap();
+        r2c.process(&mut audio_data);
         
         let mut slice_fingerprint: Vec<FrequencyBand> = Vec::new();
         slice_fingerprint.push(FrequencyBand{
@@ -86,8 +84,8 @@ fn main() {
             ..Default::default()
         });
 
-        spectrum.into_iter().enumerate().for_each(|frequency_info| {
-            let (frequency, magnitude) = (frequency_info.0 as i16, (frequency_info.1.re as f32).ln());
+        audio_data.into_iter().enumerate().for_each(|frequency_info| {
+            let (frequency, magnitude) = (frequency_info.0 as i16, frequency_info.1.re.ln());
             slice_fingerprint = slice_fingerprint.iter().map(|&(mut band)| {
                 if band.frequency_within(frequency) && band.peak_magnitude < magnitude {
                     band.peak_magnitude = magnitude;

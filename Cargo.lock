@@ -3,12 +3,6 @@
 version = 3
 
 [[package]]
-name = "arrays"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c9810d892911da7c1cc723e12a5c47645ae4f82daf5e6d73cc73f1cc6fcf1e1"
-
-[[package]]
 name = "autocfg"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -19,8 +13,8 @@ name = "crhazam"
 version = "0.1.0"
 dependencies = [
  "hound",
- "itermore",
  "realfft",
+ "rustfft",
 ]
 
 [[package]]
@@ -28,15 +22,6 @@ name = "hound"
 version = "3.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62adaabb884c94955b19907d60019f4e145d091c75345379e70d1ee696f7854f"
-
-[[package]]
-name = "itermore"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fed0daf803a3818d3693fe1fdd82d8ac0f41d0ea3f05709d5e144c4eb2b85ba5"
-dependencies = [
- "arrays",
-]
 
 [[package]]
 name = "num-complex"
